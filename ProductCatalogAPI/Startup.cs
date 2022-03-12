@@ -28,8 +28,15 @@ namespace ProductCatalogAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            var dbServer = Configuration["DatabaseServer"];
+            var dbName = Configuration["DatabaseName"];
+            var dbUser = Configuration["DatabaseUser"];
+            var dbPassword = Configuration["DatabasePassword"];
+            var connectionString = $"Data Source={dbServer};Initial Catalog={dbName};User Id={dbUser};Password={dbPassword};Connect Timeout=30;";
+
             services.AddDbContext<CatalogContext>(options =>
-                options.UseSqlServer(Configuration["ConnectionString"]));
+                options.UseSqlServer(connectionString));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

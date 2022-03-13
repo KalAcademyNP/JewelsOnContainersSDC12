@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using ProductCatalogAPI.Data;
 using ProductCatalogAPI.Domain;
+using ProductCatalogAPI.ViewModels;
 
 namespace ProductCatalogAPI.Controllers
 {
@@ -42,13 +43,22 @@ namespace ProductCatalogAPI.Controllers
             [FromQuery]int pageIndex = 0, 
             [FromQuery]int pageSize=6)
         {
+            var itemsCount = _context.Catalog.LongCountAsync();
             var items = await _context.Catalog
                                 .OrderBy(c => c.Name)
                                 .Skip(pageIndex * pageSize)
                                 .Take(pageSize)
                                 .ToListAsync();
             items = ChangePictureUrl(items);
-            return Ok(items);
+
+            var model = new PaginatedItemsViewModel
+            {
+                PageIndex = pageIndex,
+                PageSize = items.Count,
+                Count = itemsCount.Result,
+                Data = items
+            };
+            return Ok(model);
         }
 
 
@@ -68,13 +78,21 @@ namespace ProductCatalogAPI.Controllers
             {
                 query = query.Where(c => c.CatalogBrandId == catalogbrandId);
             }
+            var itemsCount = _context.Catalog.LongCountAsync();
             var items = await query
                                 .OrderBy(c => c.Name)
                                 .Skip(pageIndex * pageSize)
                                 .Take(pageSize)
                                 .ToListAsync();
             items = ChangePictureUrl(items);
-            return Ok(items);
+            var model = new PaginatedItemsViewModel
+            {
+                PageIndex = pageIndex,
+                PageSize = items.Count,
+                Count = itemsCount.Result,
+                Data = items
+            };
+            return Ok(model);
         }
 
         private List<CatalogItem> ChangePictureUrl(List<CatalogItem> items)

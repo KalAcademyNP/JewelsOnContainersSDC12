@@ -22,7 +22,7 @@ services:
       context: .\ProductCatalogAPI
       dockerfile: Dockerfile
     environment:
-      Externalbaseurl: https://localhost:7000
+      Externalbaseurl: http://localhost:7000
       DatabaseServer: mssqlserver
       DatabaseName: CatalogDb
       DatabaseUser: sa
@@ -35,3 +35,19 @@ services:
       - backend
     depends_on:
       - mssqlserver
+
+  webmvc:
+    image: jewels/webmvc
+    build:
+      context: .\WebMvc
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      CatalogUrl: http://catalog
+    ports:
+      - "7500:80"
+    container_name: webshop
+    networks:
+      - frontend
+    depends_on:
+      - catalog

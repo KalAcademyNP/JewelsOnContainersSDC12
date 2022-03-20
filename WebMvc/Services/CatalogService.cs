@@ -1,15 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WebMvc.Infrastructure;
+using WebMvc.Models;
 
 namespace WebMvc.Services
 {
-    public class CatalogService
+    public class CatalogService : ICatalogService
     {
         private readonly string _baseUrl;
         private readonly IHttpClient _client;
@@ -74,7 +76,12 @@ namespace WebMvc.Services
             return items;
         }
 
-        public async Task<>
+        public async Task<Catalog> GetCatalogItemsAsync(int page, int size, int? brand, int? type)
+        {
+            var catalogItemsUri = APIPaths.Catalog.GetAllCatalogItems(_baseUrl, page, size, brand, type);
+            var dataString = await _client.GetStringAsync(catalogItemsUri);
+            return JsonConvert.DeserializeObject<Catalog>(dataString);
+        }
 
     }
 }

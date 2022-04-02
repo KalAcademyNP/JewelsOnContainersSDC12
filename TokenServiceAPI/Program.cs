@@ -22,7 +22,7 @@ namespace TokenServiceAPI
                 var serviceProviders = scope.ServiceProvider;
                 var context = serviceProviders.GetRequiredService<ApplicationDbContext>();
                 var userManager = serviceProviders.GetRequiredService<UserManager<IdentityUser>>();
-                IdentityDbInit.Initialize(context, userManager);
+                IdentityDbInit.Initialize(context, userManager).Wait();
             }
 
             host.Run();

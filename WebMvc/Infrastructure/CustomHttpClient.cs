@@ -25,6 +25,12 @@ namespace WebMvc.Infrastructure
         {
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
+            if (authorizationToken != null)
+            {
+                requestMessage.Headers.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue
+                    (authorizationMethod, authorizationToken);
+            }
             var response = await _client.SendAsync(requestMessage);
             return await response.Content.ReadAsStringAsync();
         }

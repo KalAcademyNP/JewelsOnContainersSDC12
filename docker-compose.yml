@@ -16,6 +16,17 @@ services:
     networks:
       - backend
 
+  tokensqlserver:
+    image: "mcr.microsoft.com/mssql/server:latest"
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: ProductApi(!)
+    ports:
+      - "1449:1433"
+    container_name: jewelstokensqlserver
+    networks:
+      - backend
+
   catalog:
     image: jewels/catalogapi
     build:
@@ -44,6 +55,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       CatalogUrl: http://catalog
+      IdentityUrl: http://192.168.1.102:7800
+      CallBackUrl: http://localhost:7500
     ports:
       - "7500:80"
     container_name: webshop
@@ -51,3 +64,23 @@ services:
       - frontend
     depends_on:
       - catalog
+      - tokenserver
+
+  tokenserver:
+    build:
+      context: .\TokenServiceAPI
+      dockerfile: Dockerfile
+    image: jewels/tokenapi
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      MvcClient: http://localhost:7500
+      BasketApiClient: http://localhost:7510
+      OrderApiClient: http://localhost:7520
+    ports:
+      - "7800:80"
+    container_name: tokenserviceapi
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      - tokensqlserver

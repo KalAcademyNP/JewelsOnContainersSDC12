@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Logging;
 using TokenServiceAPI.Data;
 
 namespace TokenServiceAPI
@@ -49,7 +50,7 @@ namespace TokenServiceAPI
                 options.ConfigureDbContext =
                 builder => builder.UseSqlServer(Configuration["ConnectionString"],
                     sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)));
-
+            IdentityModelEventSource.ShowPII = true;
 
         }
 
@@ -69,7 +70,7 @@ namespace TokenServiceAPI
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
+            app.UseIdentityServer();
             app.UseRouting();
 
             app.UseAuthorization();

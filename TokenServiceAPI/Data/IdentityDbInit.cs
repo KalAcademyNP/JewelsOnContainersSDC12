@@ -11,7 +11,7 @@ namespace TokenServiceAPI.Data
     {
         private static UserManager<IdentityUser> _userManager;
         //This example just creates an Administrator role and one Admin users
-        public static async void Initialize(
+        public static async Task Initialize(
             ApplicationDbContext context,
             UserManager<IdentityUser> userManager)
         {

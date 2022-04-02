@@ -7,10 +7,10 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
-COPY ["TokenServiceAPI/TokenServiceAPI.csproj", "TokenServiceAPI/"]
-RUN dotnet restore "TokenServiceAPI/TokenServiceAPI.csproj"
 COPY . .
-WORKDIR "/src/TokenServiceAPI"
+RUN dotnet restore "TokenServiceAPI/TokenServiceAPI.csproj"
+
+
 RUN dotnet build "TokenServiceAPI.csproj" -c Release -o /app/build
 
 FROM build AS publish

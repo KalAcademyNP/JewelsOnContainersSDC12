@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Mappers;
@@ -20,17 +22,20 @@ namespace TokenServiceAPI
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
+            CurrentEnvironment = env;
         }
 
         public IConfiguration Configuration { get; }
+        private IWebHostEnvironment CurrentEnvironment { get; set; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+            services.AddMvc(option => option.EnableEndpointRouting = false);
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name; 
             
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -50,7 +55,6 @@ namespace TokenServiceAPI
                 options.ConfigureDbContext =
                 builder => builder.UseSqlServer(Configuration["ConnectionString"],
                     sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)));
-            IdentityModelEventSource.ShowPII = true;
 
         }
 
@@ -62,18 +66,12 @@ namespace TokenServiceAPI
             {
                 app.UseDeveloperExceptionPage();
             }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
             app.UseHttpsRedirection();
-            app.UseStaticFiles();
             app.UseIdentityServer();
-            app.UseRouting();
-
+            app.UseStaticFiles();
             app.UseAuthorization();
+            app.UseMvcWithDefaultRoute();
+
 
         }
 
@@ -85,6 +83,13 @@ namespace TokenServiceAPI
                 var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
                 context.Database.Migrate();
 
+                //temp code to remove and reseed data
+                context.Clients.RemoveRange(context.Clients);
+                context.IdentityResources.RemoveRange(context.IdentityResources);
+                context.ApiResources.RemoveRange(context.ApiResources);
+                context.ApiScopes.RemoveRange(context.ApiScopes);
+                context.SaveChanges();
+
                 //Seed the data
                 if (!context.Clients.Any())
                 {
@@ -94,11 +99,11 @@ namespace TokenServiceAPI
                     }
                     context.SaveChanges();
                 }
-                if (!context.ApiResources.Any())
+                if (!context.ApiScopes.Any())
                 {
-                    foreach (var resource in Config.GetAllApiResources())
+                    foreach (var resource in Config.Apis())
                     {
-                        context.ApiResources.Add(resource.ToEntity());
+                        context.ApiScopes.Add(resource.ToEntity());
                     }
                     context.SaveChanges();
                 }

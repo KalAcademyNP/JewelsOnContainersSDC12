@@ -10,18 +10,22 @@ namespace TokenServiceAPI
 {
     public static class Config
     {
-		public static IEnumerable<ApiResource> GetAllApiResources()
+		public static IEnumerable<ApiScope> Apis()
 		{
-			return new List<ApiResource>
+			return new List<ApiScope>
 				{
-					 new ApiResource("basket", "Shopping Cart Api"){
-						UserClaims = {"role"}
-					},
-					 new ApiResource("order", "Ordering Api"){
-						UserClaims = {"role"}
-					},
+					new ApiScope("basket", "Shopping Cart Api"),
+					new ApiScope("order", "Ordering Api")
 				};
 		}
+		//public static IEnumerable<ApiResource> GetAllApiResources()
+		//{
+		//	return new List<ApiResource>
+		//		{
+		//			 new ApiResource("basket", "Shopping Cart Api"),
+		//			 new ApiResource("order", "Ordering Api"),
+		//		};
+		//}
 
 		public static Dictionary<string, string> GetUrls(IConfiguration configuration)
 		{
@@ -51,6 +55,7 @@ namespace TokenServiceAPI
 						AllowAccessTokensViaBrowser = false,
 						AllowOfflineAccess = true,
 						RequireConsent = false,
+						RequirePkce = false,
 						AlwaysIncludeUserClaimsInIdToken = true,
 						AllowedScopes = new List<string>
 						{
@@ -68,6 +73,7 @@ namespace TokenServiceAPI
 						AllowedGrantTypes = GrantTypes.Implicit,
 						AllowAccessTokensViaBrowser = true,
 						RequireConsent = false,
+						RequirePkce = false,
 						RedirectUris = {$"{clientUrls["BasketApi"]}/swagger/oauth2-redirect.html" },
 						PostLogoutRedirectUris = {$"{clientUrls["BasketApi"]}/signout-callback-oidc"},
 
@@ -75,7 +81,6 @@ namespace TokenServiceAPI
 						 {
 							IdentityServerConstants.StandardScopes.OpenId,
 							IdentityServerConstants.StandardScopes.Profile,
-							IdentityServerConstants.StandardScopes.OfflineAccess,
 							"basket"
 						 }
 					},
@@ -85,6 +90,7 @@ namespace TokenServiceAPI
 						ClientName = "Order Swagger UI",
 						AllowedGrantTypes = GrantTypes.Implicit,
 						AllowAccessTokensViaBrowser = true,
+						RequirePkce = false,
 
 						RedirectUris = { $"{clientUrls["OrderApi"]}/swagger/o2c.html" },
 						PostLogoutRedirectUris = { $"{clientUrls["OrderApi"]}/swagger/" },

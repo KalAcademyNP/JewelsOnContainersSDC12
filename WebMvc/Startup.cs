@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -29,7 +31,13 @@ namespace WebMvc
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
+                options.CheckConsentNeeded = context => true;
+                options.MinimumSameSitePolicy = SameSiteMode.Lax;
+            });
+
             services.AddControllersWithViews();
             services.AddSingleton<IHttpClient, CustomHttpClient>();
             services.AddTransient<ICatalogService, CatalogService>();
@@ -39,34 +47,70 @@ namespace WebMvc
 
             var identityUrl = Configuration.GetValue<string>("IdentityUrl");
             var callBackUrl = Configuration.GetValue<string>("CallBackUrl");
+
+
             services.AddAuthentication(options =>
             {
-                options.DefaultScheme = "Cookies";
-                options.DefaultChallengeScheme = "oidc";
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             })
-            .AddCookie("Cookies")
-            .AddOpenIdConnect("oidc", options =>
+            .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
             {
-                options.SignInScheme = "Cookies";
+                options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.Authority = identityUrl.ToString();
                 options.SignedOutRedirectUri = callBackUrl.ToString();
                 options.ClientId = "mvc";
                 options.ClientSecret = "secret";
-                options.ResponseType = "code id_token";
-                options.SaveTokens = true;
-                options.GetClaimsFromUserInfoEndpoint = true;
                 options.RequireHttpsMetadata = false;
+                options.SaveTokens = true;
+                options.ResponseType = "code id_token";
+                options.GetClaimsFromUserInfoEndpoint = true;
                 options.Scope.Add("openid");
                 options.Scope.Add("profile");
-                options.Scope.Add("offline_access");
+                options.Scope.Add("order");
+                options.Scope.Add("basket");
                 options.TokenValidationParameters = new TokenValidationParameters()
                 {
 
                     NameClaimType = "name",
-                    RoleClaimType = "role"
+                    RoleClaimType = "role",
                 };
-
             });
+
+            //services.AddAuthentication(options =>
+            //{
+            //    options.DefaultScheme = "Cookies";
+            //    options.DefaultChallengeScheme = "oidc";
+            //})
+            //.AddCookie("Cookies")
+            //.AddOpenIdConnect("oidc", options =>
+            //{
+            //    options.SignInScheme = "Cookies";
+            //    options.Authority = identityUrl.ToString();
+            //    options.SignedOutRedirectUri = callBackUrl.ToString();
+            //    options.ClientId = "mvc";
+            //    options.ClientSecret = "secret";
+            //    options.ResponseType = "code id_token";
+            //    options.SaveTokens = true;
+            //    options.GetClaimsFromUserInfoEndpoint = true;
+            //    options.RequireHttpsMetadata = false;
+            //    options.Scope.Add("openid");
+            //    options.Scope.Add("profile");
+            //    options.Scope.Add("offline_access");
+            //    options.Scope.Add("order");
+            //    options.Scope.Add("basket");
+
+            //    options.TokenValidationParameters = new TokenValidationParameters()
+            //    {
+
+            //        NameClaimType = "name",
+            //        RoleClaimType = "role"
+            //    };
+
+            //});
 
 
         }
@@ -86,6 +130,7 @@ namespace WebMvc
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseCookiePolicy();
 
             app.UseRouting();
             app.UseAuthentication();

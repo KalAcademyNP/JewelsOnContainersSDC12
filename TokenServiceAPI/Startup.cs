@@ -105,6 +105,14 @@ namespace TokenServiceAPI
                     }
                     context.SaveChanges();
                 }
+                if (!context.ApiResources.Any())
+                {
+                    foreach (var resource in Config.GetAllApiResources())
+                    {
+                        context.ApiResources.Add(resource.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
                 if (!context.IdentityResources.Any())
                 {
                     foreach (var identity in Config.GetIdentityResources())

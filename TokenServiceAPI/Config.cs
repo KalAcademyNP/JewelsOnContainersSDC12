@@ -18,14 +18,14 @@ namespace TokenServiceAPI
 					new ApiScope("order", "Ordering Api")
 				};
 		}
-		//public static IEnumerable<ApiResource> GetAllApiResources()
-		//{
-		//	return new List<ApiResource>
-		//		{
-		//			 new ApiResource("basket", "Shopping Cart Api"),
-		//			 new ApiResource("order", "Ordering Api"),
-		//		};
-		//}
+		public static IEnumerable<ApiResource> GetAllApiResources()
+		{
+			return new List<ApiResource>
+				{
+					 new ApiResource("basket", "Shopping Cart Api"),
+					 new ApiResource("order", "Ordering Api"),
+				};
+		}
 
 		public static Dictionary<string, string> GetUrls(IConfiguration configuration)
 		{

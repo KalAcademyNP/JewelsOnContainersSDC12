@@ -82,6 +82,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       CatalogUrl: http://catalog
+      CartUrl: http://cart
       IdentityUrl: http://192.168.1.102:7800
       CallBackUrl: http://localhost:7500
     ports:

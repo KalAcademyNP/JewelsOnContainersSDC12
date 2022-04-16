@@ -27,6 +27,17 @@ services:
     networks:
       - backend
 
+  ordersqlserver:
+    image: "mcr.microsoft.com/mssql/server:latest"
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: ProductApi(!)
+    ports:
+      - "1450:1433"
+    container_name: jewelsordersqlserver
+    networks:
+      - backend
+
   basket.data:
     image: redis
     ports:
@@ -73,6 +84,28 @@ services:
     depends_on:
       - tokenserver
       - basket.data
+
+  order:
+    image: jewels/orderapi
+    build:
+      context: .\OrderApi
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      IdentityUrl: http://192.168.1.102:7800
+      DatabaseServer: ordersqlserver
+      DatabaseName: OrdersDb
+      DatabaseUser: sa
+      DatabasePassword: ProductApi(!)
+    ports:
+      - "7020:80"
+    container_name: jewelsorderapi
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - tokenserver
+      - ordersqlserver
 
   webmvc:
     image: jewels/webmvc

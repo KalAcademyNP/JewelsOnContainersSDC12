@@ -4,6 +4,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading.Tasks;
 using CartApi.Data;
+using CartApi.Messaging.Consumers;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -61,6 +63,31 @@ namespace CartApi
                 };
                 options.Audience = "basket";
             });
+
+            services.AddMassTransit(cfg =>
+            {
+                cfg.AddConsumer<OrderCompletedEventConsumer>();
+                cfg.AddBus(provider =>
+                {
+                    return Bus.Factory.CreateUsingRabbitMq(rmq =>
+                    {
+                        rmq.Host(new Uri("rabbitmq://rabbitmq"), "/", h =>
+                        {
+                            h.Username("guest");
+                            h.Password("guest");
+                        });
+                        rmq.ReceiveEndpoint("JewelscartFeb2022", e =>
+                        {
+                            e.ConfigureConsumer<OrderCompletedEventConsumer>(provider);
+
+                        });
+                    });
+
+                });
+            });
+
+            services.AddMassTransitHostedService();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

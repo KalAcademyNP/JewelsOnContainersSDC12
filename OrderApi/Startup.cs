@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading.Tasks;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -15,6 +16,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using OrderApi.Data;
+using RabbitMQ.Client;
 
 namespace OrderApi
 {
@@ -62,6 +64,25 @@ namespace OrderApi
                 options.Audience = "order";
             });
 
+            services.AddMassTransit(cfg =>
+            {
+                cfg.AddBus(provider =>
+                {
+                    return Bus.Factory.CreateUsingRabbitMq(rmq =>
+                    {
+                        rmq.Host(new Uri("rabbitmq://rabbitmq"), "/", h =>
+                        {
+                            h.Username("guest");
+                            h.Password("guest");
+                        });
+                        rmq.ExchangeType = ExchangeType.Fanout;
+                        MessageDataDefaults.ExtraTimeToLive = TimeSpan.FromDays(1);
+                    });
+
+                });
+            });
+
+            services.AddMassTransitHostedService();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
